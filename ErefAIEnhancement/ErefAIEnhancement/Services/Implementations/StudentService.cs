@@ -1,4 +1,4 @@
-﻿using ErefAIEnhancement.DTOs;
+﻿using ErefAIEnhancement.Exceptions;
 using ErefAIEnhancement.DTOs.StudentDto;
 using ErefAIEnhancement.Models;
 using ErefAIEnhancement.Repositories.Interfaces;
@@ -25,11 +25,11 @@ namespace ErefAIEnhancement.Services.Implementations
             return students.Select(MapToDto).ToList();
         }
 
-        public async Task<StudentResponseDto?> GetByIdAsync(Guid id)
+        public async Task<StudentResponseDto> GetByIdAsync(Guid id)
         {
             var student = await _studentRepository.GetByIdAsync(id);
             if (student == null)
-                return null;
+                throw new NotFoundException("Student not found");
 
             return MapToDto(student);
         }
@@ -38,14 +38,14 @@ namespace ErefAIEnhancement.Services.Implementations
         {
             var user = await _userRepository.GetByIdAsync(dto.UserId);
             if (user == null)
-                throw new Exception("User not found.");
+                throw new NotFoundException("User not found.");
 
             if (user.Role == null || user.Role.RoleName != "Student")
-                throw new Exception("Only users with role 'Student' can be added to Students table.");
+                throw new BadRequestException("Only users with role 'Student' can be added to Students table.");
 
             var existingStudent = await _studentRepository.GetByUserIdAsync(dto.UserId);
             if (existingStudent != null)
-                throw new Exception("This user is already in Students table.");
+                throw new BadRequestException("This user is already in Students table.");
 
             var student = new Student
             {
@@ -64,11 +64,11 @@ namespace ErefAIEnhancement.Services.Implementations
             return MapToDto(createdStudent!);
         }
 
-        public async Task<StudentResponseDto?> UpdateAsync(Guid id, UpdateStudentDto dto)
+        public async Task<StudentResponseDto> UpdateAsync(Guid id, UpdateStudentDto dto)
         {
             var student = await _studentRepository.GetByIdAsync(id);
             if (student == null)
-                return null;
+                throw new NotFoundException("Student not found");
 
             student.IndexNumber = dto.IndexNumber;
             student.YearOfStudy = dto.YearOfStudy;
@@ -82,16 +82,14 @@ namespace ErefAIEnhancement.Services.Implementations
             return MapToDto(updatedStudent!);
         }
 
-        public async Task<bool> DeleteAsync(Guid id)
+        public async Task DeleteAsync(Guid id)
         {
             var student = await _studentRepository.GetByIdAsync(id);
             if (student == null)
-                return false;
+                throw new NotFoundException("Student not found");
 
             _studentRepository.Delete(student);
             await _studentRepository.SaveChangesAsync();
-
-            return true;
         }
 
         private static StudentResponseDto MapToDto(Student student)

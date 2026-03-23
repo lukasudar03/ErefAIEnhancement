@@ -1,4 +1,4 @@
-﻿using ErefAIEnhancement.DTOs;
+﻿using ErefAIEnhancement.Exceptions;
 using ErefAIEnhancement.DTOs.RoleDtos;
 using ErefAIEnhancement.Models;
 using ErefAIEnhancement.Repositories.Interfaces;
@@ -26,11 +26,11 @@ namespace ErefAIEnhancement.Services.Implementations
             return roles.Select(MapToDto).ToList();
         }
 
-        public async Task<RoleResponseDto?> GetByIdAsync(Guid id)
+        public async Task<RoleResponseDto> GetByIdAsync(Guid id)
         {
             var role = await _roleRepository.GetByIdAsync(id);
             if (role == null)
-                return null;
+                throw new NotFoundException("Role not found");
 
             return MapToDto(role);
         }
@@ -59,7 +59,7 @@ namespace ErefAIEnhancement.Services.Implementations
             return MapToDto(role);
         }
 
-        public async Task<RoleResponseDto?> UpdateAsync(Guid id, UpdateRoleDto dto)
+        public async Task<RoleResponseDto> UpdateAsync(Guid id, UpdateRoleDto dto)
         {
             var validationResult = await _updateRoleValidator.ValidateAsync(dto);
             if (!validationResult.IsValid)
@@ -69,11 +69,11 @@ namespace ErefAIEnhancement.Services.Implementations
 
             var role = await _roleRepository.GetByIdAsync(id);
             if (role == null)
-                return null;
+                throw new NotFoundException("Role not found");
 
             var existingRole = await _roleRepository.GetByNameAsync(dto.RoleName);
             if (existingRole != null && existingRole.Id != id)
-                throw new Exception("Another role with this name already exists.");
+                throw new BadRequestException("Another role with this name already exists.");
 
             role.RoleName = dto.RoleName;
 
@@ -83,20 +83,18 @@ namespace ErefAIEnhancement.Services.Implementations
             return MapToDto(role);
         }
 
-        public async Task<bool> DeleteAsync(Guid id)
+        public async Task DeleteAsync(Guid id)
         {
             var role = await _roleRepository.GetByIdAsync(id);
             if (role == null)
-                return false;
+                throw new NotFoundException("Role not found");
 
             var hasUsers = await _roleRepository.HasUsersAsync(id);
             if (hasUsers)
-                throw new Exception("Role cannot be deleted because it is assigned to one or more users.");
+                throw new BadRequestException("Role cannot be deleted because it is assigned to one or more users.");
 
             _roleRepository.Delete(role);
             await _roleRepository.SaveChangesAsync();
-
-            return true;
         }
 
         private static RoleResponseDto MapToDto(Role role)

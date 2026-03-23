@@ -36,49 +36,26 @@ namespace ErefAIEnhancement.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateRoleDto dto)
         {
-            try
-            {
-                var createdRole = await _roleService.CreateAsync(dto);
-                return CreatedAtAction(nameof(GetById), new { id = createdRole.Id }, createdRole);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
+            var createdRole = await _roleService.CreateAsync(dto);
+            return CreatedAtAction(nameof(GetById), new { id = createdRole.Id }, createdRole);
         }
 
         [HttpPut("{id:guid}")]
         public async Task<IActionResult> Update(Guid id, [FromBody] UpdateRoleDto dto)
         {
-            try
-            {
-                var updatedRole = await _roleService.UpdateAsync(id, dto);
-                if (updatedRole == null)
-                    return NotFound();
+            var updatedRole = await _roleService.UpdateAsync(id, dto);
+            if (updatedRole == null)
+                return NotFound();
 
-                return Ok(updatedRole);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
+            return Ok(updatedRole);
         }
 
         [HttpDelete("{id:guid}")]
         public async Task<IActionResult> Delete(Guid id)
         {
-            try
-            {
-                var deleted = await _roleService.DeleteAsync(id);
-                if (!deleted)
-                    return NotFound();
+            var deleted = _roleService.DeleteAsync(id);
 
-                return NoContent();
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
+            return NoContent();
         }
     }
 }

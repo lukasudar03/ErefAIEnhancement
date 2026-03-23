@@ -1,4 +1,4 @@
-﻿using ErefAIEnhancement.DTOs;
+﻿using ErefAIEnhancement.Exceptions;
 using ErefAIEnhancement.DTOs.UserDtos;
 using ErefAIEnhancement.Models;
 using ErefAIEnhancement.Repositories.Interfaces;
@@ -33,11 +33,11 @@ namespace ErefAIEnhancement.Services.Implementations
             return users.Select(MapToResponseDto).ToList();
         }
 
-        public async Task<UserResponseDto?> GetByIdAsync(Guid id)
+        public async Task<UserResponseDto> GetByIdAsync(Guid id)
         {
             var user = await _userRepository.GetByIdAsync(id);
             if (user == null)
-                return null;
+                throw new NotFoundException("User not found");
 
             return MapToResponseDto(user);
         }
@@ -52,11 +52,11 @@ namespace ErefAIEnhancement.Services.Implementations
 
             var existingUser = await _userRepository.GetByEmailAsync(dto.Email);
             if (existingUser != null)
-                throw new Exception("User with this email already exists.");
+                throw new BadRequestException("User with this email already exists.");
 
             var roleExists = await _userRepository.RoleExistsAsync(dto.RoleId);
             if (!roleExists)
-                throw new Exception("Selected role does not exist.");
+                throw new BadRequestException("Selected role does not exist.");
 
             var user = new User
             {
@@ -75,7 +75,7 @@ namespace ErefAIEnhancement.Services.Implementations
             return MapToResponseDto(createdUser!);
         }
 
-        public async Task<UserResponseDto?> UpdateAsync(Guid id, UpdateUserDto dto)
+        public async Task<UserResponseDto> UpdateAsync(Guid id, UpdateUserDto dto)
         {
             var validationResult = await _updateUserValidator.ValidateAsync(dto);
             if (!validationResult.IsValid)
@@ -85,15 +85,15 @@ namespace ErefAIEnhancement.Services.Implementations
 
             var user = await _userRepository.GetByIdAsync(id);
             if (user == null)
-                return null;
+                throw new NotFoundException("User not found");
 
             var existingUserWithEmail = await _userRepository.GetByEmailAsync(dto.Email);
             if (existingUserWithEmail != null && existingUserWithEmail.Id != id)
-                throw new Exception("Another user with this email already exists.");
+                throw new BadRequestException("Another user with this email already exists.");
 
             var roleExists = await _userRepository.RoleExistsAsync(dto.RoleId);
             if (!roleExists)
-                throw new Exception("Selected role does not exist.");
+                throw new BadRequestException("Selected role does not exist.");
 
             user.Name = dto.Name;
             user.Email = dto.Email;
@@ -111,16 +111,14 @@ namespace ErefAIEnhancement.Services.Implementations
             return MapToResponseDto(updatedUser!);
         }
 
-        public async Task<bool> DeleteAsync(Guid id)
+        public async Task DeleteAsync(Guid id)
         {
             var user = await _userRepository.GetByIdAsync(id);
             if (user == null)
-                return false;
+                throw new NotFoundException("User not found");
 
             _userRepository.Delete(user);
             await _userRepository.SaveChangesAsync();
-
-            return true;
         }
 
         private static UserResponseDto MapToResponseDto(User user)

@@ -6,6 +6,7 @@ using ErefAIEnhancement.Services.Implementations;
 using ErefAIEnhancement.Services.Interfaces;
 using FluentValidation;
 using ErefAIEnhancement.Validators;
+using ErefAIEnhancement.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -82,6 +83,8 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 var app = builder.Build();
+
+app.UseGlobalExceptionHandling();
 
 if (app.Environment.IsDevelopment())
 {
