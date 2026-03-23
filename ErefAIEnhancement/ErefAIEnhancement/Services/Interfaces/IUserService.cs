@@ -8,6 +8,7 @@ namespace ErefAIEnhancement.Services.Interfaces
         Task<UserResponseDto> GetByIdAsync(Guid id);
         Task<UserResponseDto> CreateAsync(CreateUserDto dto);
         Task<UserResponseDto> UpdateAsync(Guid id, UpdateUserDto dto);
+        Task ChangePasswordAsync(Guid userId, ChangePasswordDto dto);
         Task DeleteAsync(Guid id);
     }
 }

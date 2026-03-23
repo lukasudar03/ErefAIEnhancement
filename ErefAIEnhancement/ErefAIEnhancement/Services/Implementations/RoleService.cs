@@ -10,14 +10,12 @@ namespace ErefAIEnhancement.Services.Implementations
     public class RoleService : IRoleService
     {
         private readonly IRoleRepository _roleRepository;
-        private readonly IValidator<CreateRoleDto> _createRoleValidator;
-        private readonly IValidator<UpdateRoleDto> _updateRoleValidator;
+        private readonly IServiceProvider _serviceProvider;
 
-        public RoleService(IRoleRepository roleRepository, IValidator<CreateRoleDto> createRoleValidator, IValidator<UpdateRoleDto> updateRoleValidator)
+        public RoleService(IRoleRepository roleRepository, IServiceProvider serviceProvider)
         {
             _roleRepository = roleRepository;
-            _createRoleValidator = createRoleValidator;
-            _updateRoleValidator = updateRoleValidator;
+            _serviceProvider = serviceProvider;
         }
 
         public async Task<List<RoleResponseDto>> GetAllAsync()
@@ -37,11 +35,7 @@ namespace ErefAIEnhancement.Services.Implementations
 
         public async Task<RoleResponseDto> CreateAsync(CreateRoleDto dto)
         {
-            var validationResult = await _createRoleValidator.ValidateAsync(dto);
-            if (!validationResult.IsValid)
-            {
-                throw new ValidationException(validationResult.Errors);
-            }
+            await ValidateAsync(dto);
 
             var existingRole = await _roleRepository.GetByNameAsync(dto.RoleName);
             if (existingRole != null)
@@ -61,11 +55,7 @@ namespace ErefAIEnhancement.Services.Implementations
 
         public async Task<RoleResponseDto> UpdateAsync(Guid id, UpdateRoleDto dto)
         {
-            var validationResult = await _updateRoleValidator.ValidateAsync(dto);
-            if (!validationResult.IsValid)
-            {
-                throw new ValidationException(validationResult.Errors);
-            }
+            await ValidateAsync(dto);
 
             var role = await _roleRepository.GetByIdAsync(id);
             if (role == null)
@@ -104,6 +94,19 @@ namespace ErefAIEnhancement.Services.Implementations
                 Id = role.Id,
                 RoleName = role.RoleName
             };
+        }
+
+        private async Task ValidateAsync<T>(T dto)
+        {
+            var validator = _serviceProvider.GetService<IValidator<T>>();
+
+            if (validator == null)
+                return;
+
+            var result = await validator.ValidateAsync(dto);
+
+            if (!result.IsValid)
+                throw new ValidationException(result.Errors);
         }
     }
 }

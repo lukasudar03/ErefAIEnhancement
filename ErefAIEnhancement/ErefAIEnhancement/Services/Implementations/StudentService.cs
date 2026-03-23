@@ -1,8 +1,9 @@
-﻿using ErefAIEnhancement.Exceptions;
-using ErefAIEnhancement.DTOs.StudentDto;
+﻿using ErefAIEnhancement.DTOs.StudentDto;
+using ErefAIEnhancement.Exceptions;
 using ErefAIEnhancement.Models;
 using ErefAIEnhancement.Repositories.Interfaces;
 using ErefAIEnhancement.Services.Interfaces;
+using FluentValidation;
 
 namespace ErefAIEnhancement.Services.Implementations
 {
@@ -10,13 +11,16 @@ namespace ErefAIEnhancement.Services.Implementations
     {
         private readonly IStudentRepository _studentRepository;
         private readonly IUserRepository _userRepository;
+        private readonly IServiceProvider _serviceProvider;
 
         public StudentService(
             IStudentRepository studentRepository,
-            IUserRepository userRepository)
+            IUserRepository userRepository,
+            IServiceProvider serviceProvider)
         {
             _studentRepository = studentRepository;
             _userRepository = userRepository;
+            _serviceProvider = serviceProvider;
         }
 
         public async Task<List<StudentResponseDto>> GetAllAsync()
@@ -36,6 +40,8 @@ namespace ErefAIEnhancement.Services.Implementations
 
         public async Task<StudentResponseDto> CreateAsync(CreateStudentDto dto)
         {
+            await ValidateAsync(dto);
+
             var user = await _userRepository.GetByIdAsync(dto.UserId);
             if (user == null)
                 throw new NotFoundException("User not found.");
@@ -66,6 +72,8 @@ namespace ErefAIEnhancement.Services.Implementations
 
         public async Task<StudentResponseDto> UpdateAsync(Guid id, UpdateStudentDto dto)
         {
+            await ValidateAsync(dto);
+
             var student = await _studentRepository.GetByIdAsync(id);
             if (student == null)
                 throw new NotFoundException("Student not found");
@@ -105,6 +113,19 @@ namespace ErefAIEnhancement.Services.Implementations
                 Name = student.User?.Name ?? string.Empty,
                 Email = student.User?.Email ?? string.Empty
             };
+        }
+
+        private async Task ValidateAsync<T>(T dto)
+        {
+            var validator = _serviceProvider.GetService<IValidator<T>>();
+
+            if (validator == null)
+                return;
+
+            var result = await validator.ValidateAsync(dto);
+
+            if (!result.IsValid)
+                throw new ValidationException(result.Errors);
         }
     }
 }

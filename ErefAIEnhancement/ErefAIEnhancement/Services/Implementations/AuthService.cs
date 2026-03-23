@@ -18,27 +18,23 @@ namespace ErefAIEnhancement.Services.Implementations
         private readonly IUserRepository _userRepository;
         private readonly IPasswordHasher<User> _passwordHasher;
         private readonly IConfiguration _configuration;
-        private readonly IValidator<LoginDto> _loginValidator;
+        private readonly IServiceProvider _serviceProvider;
 
         public AuthService(
             IUserRepository userRepository,
             IPasswordHasher<User> passwordHasher,
             IConfiguration configuration,
-            IValidator<LoginDto> loginValidator)
+            IServiceProvider serviceProvider)
         {
             _userRepository = userRepository;
             _passwordHasher = passwordHasher;
             _configuration = configuration;
-            _loginValidator = loginValidator;
+            _serviceProvider = serviceProvider;
         }
 
         public async Task<AuthResponseDto> LoginAsync(LoginDto dto)
         {
-            var validationResult = await _loginValidator.ValidateAsync(dto);
-            if (!validationResult.IsValid)
-            {
-                throw new ValidationException(validationResult.Errors);
-            }
+            await ValidateAsync(dto);
 
             var user = await _userRepository.GetByEmailAsync(dto.Email);
             if (user == null)
@@ -87,6 +83,19 @@ namespace ErefAIEnhancement.Services.Implementations
                 Token = tokenString,
                 ExpiresAtUtc = expiresAt
             };
+        }
+
+        private async Task ValidateAsync<T>(T dto)
+        {
+            var validator = _serviceProvider.GetService<IValidator<T>>();
+
+            if (validator == null)
+                return;
+
+            var result = await validator.ValidateAsync(dto);
+
+            if (!result.IsValid)
+                throw new ValidationException(result.Errors);
         }
     }
 }

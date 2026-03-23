@@ -63,6 +63,13 @@ namespace ErefAIEnhancement.Controllers
             }
         }
 
+        [HttpPatch("{id:guid}/change-password")]
+        public async Task<IActionResult> ChangePassword(Guid id, [FromBody] ChangePasswordDto dto)
+        {
+            await _userService.ChangePasswordAsync(id, dto);
+            return NoContent();
+        }
+
         [HttpDelete("{id:guid}")]
         public async Task<IActionResult> Delete(Guid id)
         {

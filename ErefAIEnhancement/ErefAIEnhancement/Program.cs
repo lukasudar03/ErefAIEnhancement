@@ -16,6 +16,15 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddValidatorsFromAssemblyContaining<CreateUserDtoValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<UpdateUserDtoValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<ChangePasswordDtoValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<CreateRoleDtoValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<UpdateRoleDtoValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<CreateStudentDtoValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<UpdateStudentDtoValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<LoginDtoValidator>();
+
 builder.Services.AddControllers();
 
 builder.Services.AddDbContext<AppDbContext>(options =>

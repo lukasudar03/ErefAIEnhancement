@@ -12,19 +12,16 @@ namespace ErefAIEnhancement.Services.Implementations
     {
         private readonly IUserRepository _userRepository;
         private readonly IPasswordHasher<User> _passwordHasher;
-        private readonly IValidator<CreateUserDto> _createUserValidator;
-        private readonly IValidator<UpdateUserDto> _updateUserValidator;
+        private readonly IServiceProvider _serviceProvider;
 
         public UserService(
             IUserRepository userRepository,
             IPasswordHasher<User> passwordHasher,
-            IValidator<CreateUserDto> createUserValidator,
-            IValidator<UpdateUserDto> updateUserValidator)
+            IServiceProvider serviceProvider)
         {
             _userRepository = userRepository;
             _passwordHasher = passwordHasher;
-            _createUserValidator = createUserValidator;
-            _updateUserValidator = updateUserValidator;
+            _serviceProvider = serviceProvider;
         }
 
         public async Task<List<UserResponseDto>> GetAllAsync()
@@ -44,11 +41,7 @@ namespace ErefAIEnhancement.Services.Implementations
 
         public async Task<UserResponseDto> CreateAsync(CreateUserDto dto)
         {
-            var validationResult = await _createUserValidator.ValidateAsync(dto);
-            if (!validationResult.IsValid)
-            {
-                throw new ValidationException(validationResult.Errors);
-            }
+            await ValidateAsync(dto);
 
             var existingUser = await _userRepository.GetByEmailAsync(dto.Email);
             if (existingUser != null)
@@ -77,11 +70,7 @@ namespace ErefAIEnhancement.Services.Implementations
 
         public async Task<UserResponseDto> UpdateAsync(Guid id, UpdateUserDto dto)
         {
-            var validationResult = await _updateUserValidator.ValidateAsync(dto);
-            if (!validationResult.IsValid)
-            {
-                throw new ValidationException(validationResult.Errors);
-            }
+            await ValidateAsync(dto);
 
             var user = await _userRepository.GetByIdAsync(id);
             if (user == null)
@@ -99,16 +88,25 @@ namespace ErefAIEnhancement.Services.Implementations
             user.Email = dto.Email;
             user.RoleId = dto.RoleId;
 
-            if (!string.IsNullOrWhiteSpace(dto.Password))
-            {
-                user.PasswordHash = _passwordHasher.HashPassword(user, dto.Password);
-            }
-
             _userRepository.Update(user);
             await _userRepository.SaveChangesAsync();
 
             var updatedUser = await _userRepository.GetByIdAsync(id);
             return MapToResponseDto(updatedUser!);
+        }
+
+        public async Task ChangePasswordAsync(Guid userId, ChangePasswordDto dto)
+        {
+            await ValidateAsync(dto);
+
+            var user = await _userRepository.GetByIdAsync(userId);
+            if (user == null)
+                throw new NotFoundException("User not found.");
+
+            user.PasswordHash = _passwordHasher.HashPassword(user, dto.NewPassword);
+
+            _userRepository.Update(user);
+            await _userRepository.SaveChangesAsync();
         }
 
         public async Task DeleteAsync(Guid id)
@@ -131,6 +129,19 @@ namespace ErefAIEnhancement.Services.Implementations
                 RoleId = user.RoleId,
                 RoleName = user.Role?.RoleName ?? string.Empty
             };
+        }
+
+        private async Task ValidateAsync<T>(T dto)
+        {
+            var validator = _serviceProvider.GetService<IValidator<T>>();
+
+            if (validator == null)
+                return;
+
+            var result = await validator.ValidateAsync(dto);
+
+            if (!result.IsValid)
+                throw new ValidationException(result.Errors);
         }
     }
 }
