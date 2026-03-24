@@ -17,5 +17,7 @@
         public Role Role { get; set; } = null!;
 
         public Student? Student { get; set; }
+
+        public Professor? Professor { get; set; }
     }
 }

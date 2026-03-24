@@ -13,6 +13,7 @@ namespace ErefAIEnhancement.Data
         public DbSet<User> Users { get; set; }
         public DbSet<Role> Roles { get; set; }
         public DbSet<Student> Students { get; set; }
+        public DbSet<Professor> Professors { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -47,6 +48,12 @@ namespace ErefAIEnhancement.Data
             modelBuilder.Entity<Student>()
                 .Property(s => s.YearOfStudy)
                 .HasConversion<string>();
+
+            modelBuilder.Entity<Professor>()
+                .HasOne(p => p.User)
+                .WithOne(u => u.Professor)
+                .HasForeignKey<Professor>(p => p.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }
