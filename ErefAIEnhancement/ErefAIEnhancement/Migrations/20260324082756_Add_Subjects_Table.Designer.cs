@@ -3,6 +3,7 @@ using System;
 using ErefAIEnhancement.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ErefAIEnhancement.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260324082756_Add_Subjects_Table")]
+    partial class Add_Subjects_Table
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -103,7 +106,7 @@ namespace ErefAIEnhancement.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<Guid?>("ProfessorId")
+                    b.Property<Guid>("ProfessorId")
                         .HasColumnType("uuid");
 
                     b.Property<string>("YearOfStudy")
@@ -173,7 +176,8 @@ namespace ErefAIEnhancement.Migrations
                     b.HasOne("ErefAIEnhancement.Models.Professor", "Professor")
                         .WithMany("Subjects")
                         .HasForeignKey("ProfessorId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Professor");
                 });

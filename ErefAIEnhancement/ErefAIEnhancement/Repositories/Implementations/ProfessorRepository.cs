@@ -3,7 +3,6 @@ using ErefAIEnhancement.Models;
 using ErefAIEnhancement.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
-
 namespace ErefAIEnhancement.Repositories.Implementations
 {
     public class ProfessorRepository : IProfessorRepository
@@ -19,6 +18,7 @@ namespace ErefAIEnhancement.Repositories.Implementations
         {
             return await _context.Professors
                 .Include(p => p.User)
+                .Include(p => p.Subjects)
                 .ToListAsync();
         }
 
@@ -26,14 +26,16 @@ namespace ErefAIEnhancement.Repositories.Implementations
         {
             return await _context.Professors
                 .Include(p => p.User)
+                .Include(p => p.Subjects)
                 .FirstOrDefaultAsync(p => p.Id == id);
         }
 
         public async Task<Professor?> GetByUserIdAsync(Guid userId)
         {
             return await _context.Professors
-                .Include(s => s.User)
-                .FirstOrDefaultAsync(s => s.UserId == userId);
+                .Include(p => p.User)
+                .Include(p => p.Subjects)
+                .FirstOrDefaultAsync(p => p.UserId == userId);
         }
 
         public async Task AddAsync(Professor professor)

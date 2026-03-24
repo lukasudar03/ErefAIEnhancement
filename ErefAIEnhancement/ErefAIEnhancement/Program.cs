@@ -13,6 +13,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using System.Text;
+using ErefAIEnhancement.Validators.SubjectValidators;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,6 +24,9 @@ builder.Services.AddValidatorsFromAssemblyContaining<CreateRoleDtoValidator>();
 builder.Services.AddValidatorsFromAssemblyContaining<UpdateRoleDtoValidator>();
 builder.Services.AddValidatorsFromAssemblyContaining<CreateStudentDtoValidator>();
 builder.Services.AddValidatorsFromAssemblyContaining<UpdateStudentDtoValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<UpdateStudentDtoValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<CreateSubjectDtoValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<UpdateSubjectDtoValidator>();
 builder.Services.AddValidatorsFromAssemblyContaining<LoginDtoValidator>();
 
 builder.Services.AddControllers();
@@ -38,6 +42,10 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddScoped<IStudentRepository, StudentRepository>();
 builder.Services.AddScoped<IStudentService, StudentService>();
+builder.Services.AddScoped<IProfessorRepository, ProfessorRepository>();
+builder.Services.AddScoped<IProfessorService, ProfessorService>();
+builder.Services.AddScoped<ISubjectRepository, SubjectRepository>();
+builder.Services.AddScoped<ISubjectService, SubjectService>();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -59,7 +67,6 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 
 builder.Services.AddAuthorization();
-builder.Services.AddValidatorsFromAssemblyContaining<CreateStudentDtoValidator>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>

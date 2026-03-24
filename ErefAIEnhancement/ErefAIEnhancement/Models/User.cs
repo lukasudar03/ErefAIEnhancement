@@ -10,10 +10,8 @@
 
         public string PasswordHash { get; set; } = string.Empty;
 
-        // FOREIGN KEY
         public Guid RoleId { get; set; }
 
-        // navigacija
         public Role Role { get; set; } = null!;
 
         public Student? Student { get; set; }
