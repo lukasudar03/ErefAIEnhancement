@@ -29,6 +29,13 @@ namespace ErefAIEnhancement.Controllers
             return Ok(subject);
         }
 
+        [HttpGet("available")]
+        public async Task<IActionResult> GetAvailable()
+        {
+            var subjects = await _subjectService.GetAvailableAsync();
+            return Ok(subjects);
+        }
+
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateSubjectDto dto)
         {

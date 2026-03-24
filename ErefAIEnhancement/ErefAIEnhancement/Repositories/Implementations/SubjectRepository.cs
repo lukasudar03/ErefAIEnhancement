@@ -37,6 +37,15 @@ namespace ErefAIEnhancement.Repositories.Implementations
                 .ToListAsync();
         }
 
+        public async Task<List<Subject>> GetAvailableAsync()
+        {
+            return await _context.Subjects
+                .Include(s => s.Professor)
+                .ThenInclude(p => p.User)
+                .Where(s => s.ProfessorId == null)
+                .ToListAsync();
+        }
+
         public async Task<Subject?> GetByNameAndProfessorIdAsync(string name, Guid professorId)
         {
             return await _context.Subjects

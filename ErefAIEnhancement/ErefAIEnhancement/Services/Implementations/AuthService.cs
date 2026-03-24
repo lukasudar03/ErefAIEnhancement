@@ -38,7 +38,7 @@ namespace ErefAIEnhancement.Services.Implementations
 
             var user = await _userRepository.GetByEmailAsync(dto.Email);
             if (user == null)
-                throw new Exception("Invalid email or password.");
+                throw new UnauthorizedAccessException("Invalid email or password.");
 
             var verificationResult = _passwordHasher.VerifyHashedPassword(
                 user,
@@ -46,7 +46,7 @@ namespace ErefAIEnhancement.Services.Implementations
                 dto.Password);
 
             if (verificationResult == PasswordVerificationResult.Failed)
-                throw new Exception("Invalid email or password.");
+                throw new UnauthorizedAccessException("Invalid email or password.");
 
             var jwtSection = _configuration.GetSection("Jwt");
             var key = jwtSection["Key"]!;

@@ -24,7 +24,6 @@ builder.Services.AddValidatorsFromAssemblyContaining<CreateRoleDtoValidator>();
 builder.Services.AddValidatorsFromAssemblyContaining<UpdateRoleDtoValidator>();
 builder.Services.AddValidatorsFromAssemblyContaining<CreateStudentDtoValidator>();
 builder.Services.AddValidatorsFromAssemblyContaining<UpdateStudentDtoValidator>();
-builder.Services.AddValidatorsFromAssemblyContaining<UpdateStudentDtoValidator>();
 builder.Services.AddValidatorsFromAssemblyContaining<CreateSubjectDtoValidator>();
 builder.Services.AddValidatorsFromAssemblyContaining<UpdateSubjectDtoValidator>();
 builder.Services.AddValidatorsFromAssemblyContaining<LoginDtoValidator>();
@@ -46,6 +45,17 @@ builder.Services.AddScoped<IProfessorRepository, ProfessorRepository>();
 builder.Services.AddScoped<IProfessorService, ProfessorService>();
 builder.Services.AddScoped<ISubjectRepository, SubjectRepository>();
 builder.Services.AddScoped<ISubjectService, SubjectService>();
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy
+            .WithOrigins("http://localhost:5173")
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -109,6 +119,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseCors("AllowFrontend");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

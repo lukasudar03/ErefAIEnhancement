@@ -5,6 +5,7 @@
         Informatika = 1,
         Mehatronika = 2,
         Elektrotehnika = 3,
-        Masinstvo = 4
+        Masinstvo = 4,
+        Menadzment = 5
     }
 }
