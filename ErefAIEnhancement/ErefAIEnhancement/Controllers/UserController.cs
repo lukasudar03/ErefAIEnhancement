@@ -73,7 +73,7 @@ namespace ErefAIEnhancement.Controllers
         [HttpDelete("{id:guid}")]
         public async Task<IActionResult> Delete(Guid id)
         {
-            var deleted = _userService.DeleteAsync(id);
+            await _userService.DeleteAsync(id);
 
             return NoContent();
         }
