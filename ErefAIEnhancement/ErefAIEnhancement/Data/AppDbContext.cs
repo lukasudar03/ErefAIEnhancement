@@ -14,6 +14,7 @@ namespace ErefAIEnhancement.Data
         public DbSet<Role> Roles { get; set; }
         public DbSet<Student> Students { get; set; }
         public DbSet<Professor> Professors { get; set; }
+        public DbSet<Subject> Subjects { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -26,6 +27,10 @@ namespace ErefAIEnhancement.Data
                 .HasDefaultValueSql("gen_random_uuid()");
 
             modelBuilder.Entity<Student>()
+                .Property(s => s.Id)
+                .HasDefaultValueSql("gen_random_uuid()");
+
+            modelBuilder.Entity<Subject>()
                 .Property(s => s.Id)
                 .HasDefaultValueSql("gen_random_uuid()");
 
@@ -54,6 +59,23 @@ namespace ErefAIEnhancement.Data
                 .WithOne(u => u.Professor)
                 .HasForeignKey<Professor>(p => p.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Subject>()
+                .HasOne(s => s.Professor)
+                .WithMany(p => p.Subjects)
+                .HasForeignKey(s => s.ProfessorId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Subject>()
+                .Property(s => s.Department)
+                .HasConversion<string>();
+
+            modelBuilder.Entity<Subject>()
+                .Property(s => s.YearOfStudy)
+                .HasConversion<string>();
+
+            modelBuilder.Entity<Subject>()
+                .HasIndex(s => s.ProfessorId);
         }
     }
 }
