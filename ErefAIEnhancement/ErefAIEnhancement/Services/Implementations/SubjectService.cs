@@ -38,6 +38,12 @@ namespace ErefAIEnhancement.Services.Implementations
             return MapToDto(subject);
         }
 
+        public async Task<List<SubjectResponseDto>> GetAvailableAsync()
+        {
+            var subjects = await _subjectRepository.GetAvailableAsync();
+            return subjects.Select(MapToDto).ToList();
+        }
+
         public async Task<SubjectResponseDto> CreateAsync(CreateSubjectDto dto)
         {
             await ValidateAsync(dto);

@@ -6,6 +6,7 @@ namespace ErefAIEnhancement.Services.Interfaces
     {
         Task<List<SubjectResponseDto>> GetAllAsync();
         Task<SubjectResponseDto> GetByIdAsync(Guid id);
+        Task<List<SubjectResponseDto>> GetAvailableAsync();
         Task<SubjectResponseDto> CreateAsync(CreateSubjectDto dto);
         Task<SubjectResponseDto> UpdateAsync(Guid id, UpdateSubjectDto dto);
         Task DeleteAsync(Guid id);

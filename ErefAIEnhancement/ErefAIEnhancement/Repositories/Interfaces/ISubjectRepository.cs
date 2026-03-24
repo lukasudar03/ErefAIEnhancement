@@ -8,6 +8,7 @@ namespace ErefAIEnhancement.Repositories.Interfaces
         Task<List<Subject>> GetAllAsync();
         Task<Subject?> GetByIdAsync(Guid id);
         Task<List<Subject>> GetByIdsAsync(List<Guid> ids);
+        Task<List<Subject>> GetAvailableAsync();
         Task<Subject?> GetByNameAndProfessorIdAsync(string name, Guid professorId);
         Task AddAsync(Subject subject);
         void Update(Subject subject);
