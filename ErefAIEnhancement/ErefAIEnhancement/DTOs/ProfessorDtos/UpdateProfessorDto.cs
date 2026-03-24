@@ -3,5 +3,6 @@
     public class UpdateProfessorDto
     {
         public Guid UserId { get; set; }
+        public List<Guid> SubjectIds { get; set; } = new();
     }
 }

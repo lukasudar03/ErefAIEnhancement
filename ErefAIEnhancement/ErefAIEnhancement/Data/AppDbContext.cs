@@ -64,7 +64,7 @@ namespace ErefAIEnhancement.Data
                 .HasOne(s => s.Professor)
                 .WithMany(p => p.Subjects)
                 .HasForeignKey(s => s.ProfessorId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.SetNull);
 
             modelBuilder.Entity<Subject>()
                 .Property(s => s.Department)
