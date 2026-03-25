@@ -35,6 +35,33 @@ namespace ErefAIEnhancement.Repositories.Implementations
                 .FirstOrDefaultAsync(s => s.UserId == userId);
         }
 
+        public async Task<Student?> GetByIdWithStudentSubjectsAsync(Guid id)
+        {
+            return await _context.Students
+                .Include(s => s.User)
+                .Include(s => s.StudentSubjects)
+                    .ThenInclude(ss => ss.Subject)
+                .FirstOrDefaultAsync(s => s.Id == id);
+        }
+
+        public async Task<List<StudentSubject>> GetStudentSubjectsAsync(Guid studentId)
+        {
+            return await _context.StudentSubjects
+                .Where(ss => ss.StudentId == studentId)
+                .Include(ss => ss.Subject)
+                .ToListAsync();
+        }
+
+        public async Task AddStudentSubjectsAsync(IEnumerable<StudentSubject> studentSubjects)
+        {
+            await _context.StudentSubjects.AddRangeAsync(studentSubjects);
+        }
+
+        public void RemoveStudentSubjects(IEnumerable<StudentSubject> studentSubjects)
+        {
+            _context.StudentSubjects.RemoveRange(studentSubjects);
+        }
+
         public async Task AddAsync(Student student)
         {
             await _context.Students.AddAsync(student);
