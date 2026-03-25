@@ -17,5 +17,7 @@ namespace ErefAIEnhancement.Models
         public DateTime DateOfBirth { get; set; }
 
         public Department Department { get; set; }
+
+        public ICollection<StudentSubject> StudentSubjects { get; set; } = new List<StudentSubject>();
     }
 }

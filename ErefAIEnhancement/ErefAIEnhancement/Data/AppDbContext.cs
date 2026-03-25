@@ -15,6 +15,7 @@ namespace ErefAIEnhancement.Data
         public DbSet<Student> Students { get; set; }
         public DbSet<Professor> Professors { get; set; }
         public DbSet<Subject> Subjects { get; set; }
+        public DbSet<StudentSubject> StudentSubjects { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -32,6 +33,10 @@ namespace ErefAIEnhancement.Data
 
             modelBuilder.Entity<Subject>()
                 .Property(s => s.Id)
+                .HasDefaultValueSql("gen_random_uuid()");
+
+            modelBuilder.Entity<Professor>()
+                .Property(p => p.Id)
                 .HasDefaultValueSql("gen_random_uuid()");
 
             base.OnModelCreating(modelBuilder);
@@ -60,6 +65,10 @@ namespace ErefAIEnhancement.Data
                 .HasForeignKey<Professor>(p => p.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            modelBuilder.Entity<Professor>()
+                .HasIndex(p => p.UserId)
+                .IsUnique();
+
             modelBuilder.Entity<Subject>()
                 .HasOne(s => s.Professor)
                 .WithMany(p => p.Subjects)
@@ -76,6 +85,25 @@ namespace ErefAIEnhancement.Data
 
             modelBuilder.Entity<Subject>()
                 .HasIndex(s => s.ProfessorId);
+
+            modelBuilder.Entity<StudentSubject>()
+                .HasKey(ss => new { ss.StudentId, ss.SubjectId });
+
+            modelBuilder.Entity<StudentSubject>()
+                .HasOne(ss => ss.Student)
+                .WithMany(s => s.StudentSubjects)
+                .HasForeignKey(ss => ss.StudentId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<StudentSubject>()
+                .HasOne(ss => ss.Subject)
+                .WithMany(s => s.StudentSubjects)
+                .HasForeignKey(ss => ss.SubjectId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<StudentSubject>()
+                .Property(ss => ss.Selected)
+                .HasDefaultValue(false);
         }
     }
 }

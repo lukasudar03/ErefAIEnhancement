@@ -13,5 +13,7 @@ namespace ErefAIEnhancement.Models
 
         public YearOfStudy YearOfStudy { get; set; }
         public Department Department { get; set; }
+
+        public ICollection<StudentSubject> StudentSubjects { get; set; } = new List<StudentSubject>();
     }
 }
