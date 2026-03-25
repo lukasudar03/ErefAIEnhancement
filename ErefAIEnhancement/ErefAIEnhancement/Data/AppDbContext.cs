@@ -84,6 +84,10 @@ namespace ErefAIEnhancement.Data
                 .HasConversion<string>();
 
             modelBuilder.Entity<Subject>()
+                .Property(s => s.Required)
+                .HasDefaultValue(false);
+
+            modelBuilder.Entity<Subject>()
                 .HasIndex(s => s.ProfessorId);
 
             modelBuilder.Entity<StudentSubject>()

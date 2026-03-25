@@ -1,4 +1,5 @@
 ﻿using ErefAIEnhancement.DTOs.StudentDto;
+using ErefAIEnhancement.DTOs.StudentSubjectDtos;
 using ErefAIEnhancement.Exceptions;
 using ErefAIEnhancement.Models;
 using ErefAIEnhancement.Repositories.Interfaces;
@@ -11,15 +12,18 @@ namespace ErefAIEnhancement.Services.Implementations
     {
         private readonly IStudentRepository _studentRepository;
         private readonly IUserRepository _userRepository;
+        private readonly ISubjectRepository _subjectRepository;
         private readonly IServiceProvider _serviceProvider;
 
         public StudentService(
             IStudentRepository studentRepository,
             IUserRepository userRepository,
+            ISubjectRepository subjectRepository,
             IServiceProvider serviceProvider)
         {
             _studentRepository = studentRepository;
             _userRepository = userRepository;
+            _subjectRepository = subjectRepository;
             _serviceProvider = serviceProvider;
         }
 
@@ -100,6 +104,95 @@ namespace ErefAIEnhancement.Services.Implementations
             await _studentRepository.SaveChangesAsync();
         }
 
+        public async Task<List<StudentSubjectSelectionItemDto>> GetSubjectsAsync(Guid studentId)
+        {
+            var student = await _studentRepository.GetByIdAsync(studentId);
+            if (student == null)
+                throw new NotFoundException("Student not found");
+
+            var studentSubjects = await _studentRepository.GetStudentSubjectsAsync(studentId);
+            var allSubjects = await _subjectRepository.GetAllAsync();
+
+            return allSubjects
+                .Select(subject =>
+                {
+                    var existingStudentSubject = studentSubjects
+                        .FirstOrDefault(ss => ss.SubjectId == subject.Id);
+
+                    var isRequiredForStudent =
+                        subject.Required &&
+                        subject.Department == student.Department &&
+                        subject.YearOfStudy == student.YearOfStudy;
+
+                    return new StudentSubjectSelectionItemDto
+                    {
+                        SubjectId = subject.Id,
+                        SubjectName = subject.Name,
+                        YearOfStudy = subject.YearOfStudy,
+                        Department = subject.Department,
+                        Required = subject.Required,
+                        Selected = isRequiredForStudent || (existingStudentSubject?.Selected ?? false)
+                    };
+                })
+                .OrderBy(x => x.YearOfStudy)
+                .ThenBy(x => x.Department)
+                .ThenByDescending(x => x.Required)
+                .ThenBy(x => x.SubjectName)
+                .ToList();
+        }
+
+        public async Task<List<StudentSubjectSelectionItemDto>> UpdateSubjectsAsync(Guid studentId, UpdateStudentSubjectsDto dto)
+        {
+            var student = await _studentRepository.GetByIdAsync(studentId);
+            if (student == null)
+                throw new NotFoundException("Student not found");
+
+            var requestedSubjectIds = dto.SubjectIds
+                .Distinct()
+                .ToList();
+
+            var validSubjects = await _subjectRepository.GetByIdsAsync(requestedSubjectIds);
+            if (validSubjects.Count != requestedSubjectIds.Count)
+                throw new BadRequestException("One or more selected subjects do not exist.");
+
+            var requiredSubjectIds = (await _subjectRepository.GetAllAsync())
+                .Where(subject =>
+                    subject.Required &&
+                    subject.Department == student.Department &&
+                    subject.YearOfStudy == student.YearOfStudy)
+                .Select(subject => subject.Id)
+                .ToHashSet();
+
+            var optionalSelectedSubjects = validSubjects
+                .Where(subject => !requiredSubjectIds.Contains(subject.Id))
+                .ToList();
+
+            var existingStudentSubjects = await _studentRepository.GetStudentSubjectsAsync(studentId);
+
+            if (existingStudentSubjects.Any())
+            {
+                _studentRepository.RemoveStudentSubjects(existingStudentSubjects);
+                await _studentRepository.SaveChangesAsync();
+            }
+
+            var newStudentSubjects = optionalSelectedSubjects
+                .Select(subject => new StudentSubject
+                {
+                    StudentId = studentId,
+                    SubjectId = subject.Id,
+                    Selected = true
+                })
+                .ToList();
+
+            if (newStudentSubjects.Any())
+            {
+                await _studentRepository.AddStudentSubjectsAsync(newStudentSubjects);
+                await _studentRepository.SaveChangesAsync();
+            }
+
+            return await GetSubjectsAsync(studentId);
+        }
+
         private static StudentResponseDto MapToDto(Student student)
         {
             return new StudentResponseDto
@@ -118,12 +211,10 @@ namespace ErefAIEnhancement.Services.Implementations
         private async Task ValidateAsync<T>(T dto)
         {
             var validator = _serviceProvider.GetService<IValidator<T>>();
-
             if (validator == null)
                 return;
 
             var result = await validator.ValidateAsync(dto);
-
             if (!result.IsValid)
                 throw new ValidationException(result.Errors);
         }

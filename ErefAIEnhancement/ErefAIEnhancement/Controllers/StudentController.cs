@@ -1,7 +1,6 @@
-﻿using ErefAIEnhancement.DTOs;
-using ErefAIEnhancement.DTOs.StudentDto;
+﻿using ErefAIEnhancement.DTOs.StudentDto;
+using ErefAIEnhancement.DTOs.StudentSubjectDtos;
 using ErefAIEnhancement.Services.Interfaces;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ErefAIEnhancement.Controllers
@@ -28,48 +27,41 @@ namespace ErefAIEnhancement.Controllers
         public async Task<IActionResult> GetById(Guid id)
         {
             var student = await _studentService.GetByIdAsync(id);
-            if (student == null)
-                return NotFound();
-
             return Ok(student);
+        }
+
+        [HttpGet("{id:guid}/subjects")]
+        public async Task<IActionResult> GetSubjects(Guid id)
+        {
+            var subjects = await _studentService.GetSubjectsAsync(id);
+            return Ok(subjects);
+        }
+
+        [HttpPut("{id:guid}/subjects")]
+        public async Task<IActionResult> UpdateSubjects(Guid id, [FromBody] UpdateStudentSubjectsDto dto)
+        {
+            var updatedSubjects = await _studentService.UpdateSubjectsAsync(id, dto);
+            return Ok(updatedSubjects);
         }
 
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateStudentDto dto)
         {
-            try
-            {
-                var createdStudent = await _studentService.CreateAsync(dto);
-                return CreatedAtAction(nameof(GetById), new { id = createdStudent.Id }, createdStudent);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
+            var createdStudent = await _studentService.CreateAsync(dto);
+            return CreatedAtAction(nameof(GetById), new { id = createdStudent.Id }, createdStudent);
         }
 
         [HttpPut("{id:guid}")]
         public async Task<IActionResult> Update(Guid id, [FromBody] UpdateStudentDto dto)
         {
-            try
-            {
-                var updatedStudent = await _studentService.UpdateAsync(id, dto);
-                if (updatedStudent == null)
-                    return NotFound();
-
-                return Ok(updatedStudent);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
+            var updatedStudent = await _studentService.UpdateAsync(id, dto);
+            return Ok(updatedStudent);
         }
 
         [HttpDelete("{id:guid}")]
         public async Task<IActionResult> Delete(Guid id)
         {
             await _studentService.DeleteAsync(id);
-
             return NoContent();
         }
     }

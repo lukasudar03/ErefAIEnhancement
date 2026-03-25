@@ -53,7 +53,8 @@ namespace ErefAIEnhancement.Services.Implementations
                 Id = Guid.NewGuid(),
                 Name = dto.Name,
                 YearOfStudy = dto.YearOfStudy,
-                Department = dto.Department
+                Department = dto.Department,
+                Required = dto.Required
             };
 
             await _subjectRepository.AddAsync(subject);
@@ -74,6 +75,7 @@ namespace ErefAIEnhancement.Services.Implementations
             subject.Name = dto.Name;
             subject.YearOfStudy = dto.YearOfStudy;
             subject.Department = dto.Department;
+            subject.Required = dto.Required;
 
             _subjectRepository.Update(subject);
             await _subjectRepository.SaveChangesAsync();
@@ -101,6 +103,7 @@ namespace ErefAIEnhancement.Services.Implementations
                 ProfessorId = subject.ProfessorId ?? null,
                 YearOfStudy = subject.YearOfStudy,
                 Department = subject.Department,
+                Required = subject.Required,
                 ProfessorName = subject.Professor?.User?.Name ?? string.Empty,
                 ProfessorEmail = subject.Professor?.User?.Email ?? string.Empty
             };
